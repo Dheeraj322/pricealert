@@ -7,7 +7,7 @@ import redis
 async def get_websocket_data():
     items = {}
     uri = "wss://fstream.binance.com/ws/!miniTicker@arr"
-    redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
+    redis_client = redis.StrictRedis(host="redis", port=6379, db=0)
 
     async with websockets.connect(uri) as websocket:
         while True:
@@ -25,8 +25,8 @@ async def get_websocket_data():
                     redis_client.set(symbol, price)
 
             total_symbols = len(items)
-            print(f"Total symbols: {total_symbols}, Updated symbols: {update}")
-            print(items)
+            # print(f"Total symbols: {total_symbols}, Updated symbols: {update}")
+            # print(items)
 
 
 asyncio.run(get_websocket_data())

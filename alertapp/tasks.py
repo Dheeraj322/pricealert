@@ -8,9 +8,7 @@ from .models import Alert
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pricealert.settings")
 django.setup()
-redis_client = redis.StrictRedis(
-    host="localhost", port=6379, db=0, decode_responses=True
-)
+redis_client = redis.StrictRedis(host="redis", port=6379, db=0, decode_responses=True)
 
 
 @shared_task
@@ -39,6 +37,7 @@ def process_alerts():
 
         try:
             current_price = float(redis_client.get(alert.item) or 0)
+            current_price_db = float(alert.current_price or 0)
         except ValueError:
             print(f"Error converting price for {alert.item} to float.")
             current_price = 0
@@ -48,15 +47,7 @@ def process_alerts():
         print(f"Current price for {alert.item} is {current_price}.")
         print(f"Target price for {alert.item} is {target_price}.")
 
-        if (
-            target_price >= current_price
-            and alert.current_price < target_price
-            and alert.status != "triggered"
-        ) or (
-            target_price <= current_price
-            and alert.current_price > target_price
-            and alert.status != "triggered"
-        ):
+        if (current_price_db < target_price and current_price >= target_price and alert.status != "triggered") or (current_price_db > target_price and current_price <= target_price and alert.status != "triggered"):
             alert.status = "triggered"
             alert.save()
             print(

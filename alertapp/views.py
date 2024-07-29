@@ -1,12 +1,13 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer, AlertSerializer
-from .models import User, Alert
+from .models import Alert
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
+from django.views.decorators.vary import vary_on_cookie, vary_on_headers
 
 
 class Register(APIView):
@@ -63,6 +64,7 @@ class DeleteAlert(APIView):
 class FetchAlerts(APIView):
     permission_classes = [IsAuthenticated]
 
+    @method_decorator(cache_page(60))
     def get(self, request):
         status_filter = request.query_params.get("status", None)
         alerts = Alert.objects.filter(user=request.user).exclude(status="deleted")
