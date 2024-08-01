@@ -87,3 +87,36 @@ The system allows for the user to set a target price and send an alert in the fo
    - Sends an email notification to the user using Django's `send_mail` function.
 
    The email content includes details about the triggered alert and the current price.
+
+
+## Project Structure and Architecture
+
+1. **Django Application:**
+
+   - It defines the database schema using Django's ORM, Handles HTTP requests and returns responses and Converts querysets and model instances to Python datatypes that can be rendered into json.
+
+2. **Celery:**
+
+   - It performs background tasks that can be executed asynchronously. Here the task is `process_alerts` which checks if the target price has been reached and sends an email if the condition is met.
+   - Celery Beat is a scheduler that triggers tasks at regular intervals. It runs the `process_alerts` task every minute.
+
+3. **Redis:**
+
+   - Redis acts as the message broker for Celery, handling the messaging between the Django application and the Celery workers.
+   - It also stores real-time price data fetched via WebSocket.
+
+4. **PostgreSQL:**
+
+   - Stores user data and alert information. Managed using Django's ORM for seamless interaction with the Django application.
+
+5. **WebSocket Fetcher:**
+
+   - A script that connects to a WebSocket to fetch real-time price data and stores it in Redis for quick access by the Celery tasks.
+
+6. **Email Sending:**
+
+   - Emails are sent using Django's `send_mail` function, which is configured via environment variables in the `.env` file.
+
+7. **Docker:**
+
+   - Manages multi-container Docker applications, setting up the PostgreSQL database, Django application, Celery workers, and Redis service.
